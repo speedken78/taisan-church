@@ -10,6 +10,8 @@ import MediaManager from './pages/MediaManager';
 import PastorWorkManager from './pages/PastorWorkManager';
 import GroupManager from './pages/GroupManager';
 import OfferingReport from './pages/OfferingReport';
+import FormManager from './pages/FormManager';
+import FormReport from './pages/FormReport';
 
 export default function App() {
   return (
@@ -31,6 +33,8 @@ export default function App() {
                     <Route path="/pastor-works" element={<PastorWorkManager />} />
                     <Route path="/groups" element={<GroupManager />} />
                     <Route path="/offering" element={<OfferingReport />} />
+                    <Route path="/forms" element={<FormManager />} />
+                    <Route path="/forms/report" element={<FormReport />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

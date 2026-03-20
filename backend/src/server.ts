@@ -11,9 +11,14 @@ import mediaRoutes from './routes/media';
 import pastorWorkRoutes from './routes/pastorWorks';
 import groupRoutes from './routes/groups';
 import offeringRoutes from './routes/offering';
+import formRoutes from './routes/forms';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// 信任緊鄰的第一層 proxy（Nginx container）
+// 讓 req.ip 正確讀取 X-Forwarded-For，rate limiting 才能依真實用戶 IP 計數
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors());
@@ -31,6 +36,7 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/pastor-works', pastorWorkRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/offering', offeringRoutes);
+app.use('/api/forms', formRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

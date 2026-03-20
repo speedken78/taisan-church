@@ -12,6 +12,9 @@ import Groups from './pages/Groups';
 import Offering from './pages/Offering';
 import OfferingResult from './pages/OfferingResult';
 import Contact from './pages/Contact';
+import Forms from './pages/Forms';
+import FormDetail from './pages/FormDetail';
+import FormResult from './pages/FormResult';
 
 export default function App() {
   return (
@@ -30,6 +33,9 @@ export default function App() {
           <Route path="/offering" element={<Offering />} />
           <Route path="/offering/result" element={<OfferingResult />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/forms" element={<Forms />} />
+          <Route path="/forms/result" element={<FormResult />} />
+          <Route path="/forms/:id" element={<FormDetail />} />
         </Routes>
         <Footer />
       </div>

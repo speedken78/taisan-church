@@ -9,6 +9,8 @@ const navItems = [
   { to: '/pastor-works', label: '📚 牧師著作' },
   { to: '/groups', label: '👥 小組管理' },
   { to: '/offering', label: '💛 奉獻記錄' },
+  { to: '/forms', label: '📋 活動/團購' },
+  { to: '/forms/report', label: '📊 報名統計' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

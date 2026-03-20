@@ -27,6 +27,18 @@ export const groupApi = {
   getAll: () => api.get('/groups'),
 };
 
+export const formApi = {
+  getOpen: (type?: string) => api.get('/forms', { params: type ? { type } : {} }),
+  getById: (id: string) => api.get(`/forms/${id}`),
+  submit: (id: string, data: {
+    name: string;
+    email: string;
+    phone: string;
+    answers: Record<string, string | string[]>;
+    quantity: number;
+  }) => api.post(`/forms/${id}/submit`, data),
+};
+
 export const offeringApi = {
   create: (data: {
     amount: number;

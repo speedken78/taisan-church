@@ -8,6 +8,7 @@ const navLinks = [
   { to: '/media', label: '影音資源' },
   { to: '/pastor-works', label: '牧師著作' },
   { to: '/groups', label: '小組牧區' },
+  { to: '/forms', label: '活動報名' },
   { to: '/contact', label: '聯絡我們' },
 ];
 

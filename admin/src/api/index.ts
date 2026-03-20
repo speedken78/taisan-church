@@ -64,6 +64,15 @@ export const groupApi = {
   remove: (id: string) => api.delete(`/groups/${id}`),
 };
 
+export const formApi = {
+  getAll: () => api.get('/forms/admin/all'),
+  getById: (id: string) => api.get(`/forms/${id}`),
+  create: (data: object) => api.post('/forms', data),
+  update: (id: string, data: object) => api.put(`/forms/${id}`, data),
+  remove: (id: string) => api.delete(`/forms/${id}`),
+  getSubmissions: (id: string, page = 1) => api.get(`/forms/${id}/submissions?page=${page}`),
+};
+
 export const offeringApi = {
   getRecords: (page = 1) => api.get(`/offering/admin/records?page=${page}`),
 };
