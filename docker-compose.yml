@@ -1,0 +1,45 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: church_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: church
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build: ./backend
+    container_name: church_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: church_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  admin:
+    build: ./admin
+    container_name: church_admin
+    restart: unless-stopped
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

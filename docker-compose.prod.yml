@@ -1,0 +1,77 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: church_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: church
+    volumes:
+      - mongo_data:/data/db
+    # 正式環境不對外開放 MongoDB port
+    networks:
+      - internal
+
+  backend:
+    build: ./backend
+    container_name: church_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production
+    # 正式環境不對外開放，只透過 nginx 存取
+    expose:
+      - "5001"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - internal
+
+  frontend:
+    build: ./frontend
+    container_name: church_frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+  admin:
+    build: ./admin
+    container_name: church_admin
+    restart: unless-stopped
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:alpine
+    container_name: church_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      # Let's Encrypt SSL 憑證（由 certbot 產生在主機上）
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # 上傳的靜態檔案（圖片等）
+      - ./backend/uploads:/var/www/uploads:ro
+    depends_on:
+      - frontend
+      - admin
+      - backend
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  mongo_data:

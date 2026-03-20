@@ -1,0 +1,71 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api',
+  timeout: 15000,
+});
+
+// 自動帶入 JWT token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('admin_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// 401 自動登出
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('admin_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
+export const authApi = {
+  login: (username: string, password: string) =>
+    api.post('/auth/login', { username, password }),
+};
+
+export const newsApi = {
+  getAll: () => api.get('/news/admin/all'),
+  create: (data: FormData | object) => api.post('/news', data),
+  update: (id: string, data: object) => api.put(`/news/${id}`, data),
+  remove: (id: string) => api.delete(`/news/${id}`),
+};
+
+export const bannerApi = {
+  getAll: () => api.get('/banners/admin/all'),
+  create: (data: FormData) => api.post('/banners', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id: string, data: object) => api.put(`/banners/${id}`, data),
+  remove: (id: string) => api.delete(`/banners/${id}`),
+};
+
+export const mediaApi = {
+  getAll: () => api.get('/media/admin/all'),
+  create: (data: object) => api.post('/media', data),
+  update: (id: string, data: object) => api.put(`/media/${id}`, data),
+  remove: (id: string) => api.delete(`/media/${id}`),
+};
+
+export const pastorWorkApi = {
+  getAll: () => api.get('/pastor-works/admin/all'),
+  create: (data: FormData) => api.post('/pastor-works', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id: string, data: object) => api.put(`/pastor-works/${id}`, data),
+  remove: (id: string) => api.delete(`/pastor-works/${id}`),
+};
+
+export const groupApi = {
+  getAll: () => api.get('/groups/admin/all'),
+  create: (data: FormData) => api.post('/groups', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id: string, data: object) => api.put(`/groups/${id}`, data),
+  remove: (id: string) => api.delete(`/groups/${id}`),
+};
+
+export const offeringApi = {
+  getRecords: (page = 1) => api.get(`/offering/admin/records?page=${page}`),
+};
+
+export default api;
