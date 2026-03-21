@@ -2,9 +2,9 @@ import { Schema, model, Document } from 'mongoose';
 
 export interface IFormSubmission extends Document {
   formId: Schema.Types.ObjectId;
-  name: string;
-  email: string;
-  phone: string;
+  name?: string;   // requireContact = false 的表單不強制收集
+  email?: string;
+  phone?: string;
   answers: Map<string, string | number | string[]>;
   quantity: number;
   totalAmount: number;
@@ -14,9 +14,9 @@ export interface IFormSubmission extends Document {
 const FormSubmissionSchema = new Schema<IFormSubmission>(
   {
     formId: { type: Schema.Types.ObjectId, ref: 'Form', required: true, index: true },
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    phone: { type: String, required: true, trim: true },
+    name: { type: String, trim: true },
+    email: { type: String, trim: true, lowercase: true },
+    phone: { type: String, trim: true },
     answers: { type: Map, of: Schema.Types.Mixed, default: {} },
     quantity: { type: Number, default: 1, min: 1 },
     totalAmount: { type: Number, default: 0 },

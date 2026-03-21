@@ -13,7 +13,13 @@ export const getAllBanners = async (_req: Request, res: Response): Promise<void>
 
 export const createBanner = async (req: Request, res: Response): Promise<void> => {
   const { title, imageUrl, linkUrl, order, isActive } = req.body;
-  const banner = await Banner.create({ title, imageUrl, linkUrl, order, isActive });
+  const banner = await Banner.create({
+    title,
+    imageUrl,
+    linkUrl: linkUrl || undefined,
+    order: Number(order) || 0,
+    isActive: isActive === true || isActive === 'true',
+  });
   res.status(201).json(banner);
 };
 

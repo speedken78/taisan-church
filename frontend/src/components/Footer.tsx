@@ -17,7 +17,7 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-3">快速連結</h3>
           <ul className="text-sm space-y-2">
             <li><Link to="/about" className="hover:text-yellow-400">關於我們</Link></li>
-            <li><Link to="/services" className="hover:text-yellow-400">聚會時間</Link></li>
+            <li><Link to="/services" className="hover:text-yellow-400">聚會資訊</Link></li>
             <li><Link to="/news" className="hover:text-yellow-400">最新消息</Link></li>
             <li><Link to="/media" className="hover:text-yellow-400">影音資源</Link></li>
             <li><Link to="/offering" className="hover:text-yellow-400">線上奉獻</Link></li>

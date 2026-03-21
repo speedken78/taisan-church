@@ -1,15 +1,14 @@
 export default function Services() {
   const services = [
     { name: '主日崇拜', time: '每週日 上午 10:00', location: '主堂' },
-    { name: '主日學', time: '每週日 上午 09:00', location: '教育館' },
-    { name: '禱告會', time: '每週三 晚上 19:30', location: '主堂' },
-    { name: '青年聚會', time: '每週五 晚上 19:30', location: '青年館' },
+    { name: '主日學', time: '每週日 上午 10:00', location: '主堂' },
+    { name: '禱告會', time: '每月最後一個主日 下午 13:00', location: '主堂' },
   ];
 
   return (
     <main className="flex-1">
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-8">聚會時間</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">聚會資訊</h1>
 
         <div className="grid gap-4 mb-10">
           {services.map((s) => (
@@ -23,6 +22,14 @@ export default function Services() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mb-10">
+          <img
+            src="https://taishanchurch.org.tw/wp-content/uploads/2023/06/1687357862488-1024x723.jpg"
+            alt="聚會時間"
+            className="w-full rounded-xl"
+          />
         </div>
 
         <section>

@@ -14,7 +14,7 @@ interface SubmissionConfirmOptions {
   to: string;
   name: string;
   formTitle: string;
-  formType: 'event' | 'group_buy';
+  formType: string;
   quantity: number;
   totalAmount: number;
   answers: Record<string, string | number | string[]>;
@@ -22,7 +22,10 @@ interface SubmissionConfirmOptions {
 }
 
 export async function sendSubmissionConfirm(opts: SubmissionConfirmOptions): Promise<void> {
-  const typeLabel = opts.formType === 'group_buy' ? '團購' : '活動報名';
+  const TYPE_LABELS: Record<string, string> = {
+    event: '活動報名', group_buy: '團購', volunteer: '志工招募', venue: '場地借用', survey: '問卷調查',
+  };
+  const typeLabel = TYPE_LABELS[opts.formType] ?? opts.formType;
 
   const answersHtml = Object.entries(opts.answers)
     .map(([key, val]) => {

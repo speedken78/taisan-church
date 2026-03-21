@@ -5,8 +5,10 @@ import { formApi } from '../api';
 interface FormField {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'select' | 'radio' | 'checkbox';
+  type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'radio' | 'checkbox';
   options?: string[];
+  placeholder?: string;
+  helpText?: string;
   required: boolean;
 }
 
@@ -14,8 +16,9 @@ interface FormData {
   _id: string;
   title: string;
   description: string;
-  type: 'event' | 'group_buy';
+  type: string;
   fields: FormField[];
+  requireContact: boolean;
   price?: number;
   maxQuantity?: number;
   totalLimit?: number;
@@ -24,7 +27,13 @@ interface FormData {
   status: 'open' | 'closed' | 'expired';
 }
 
-const TYPE_LABELS = { event: '活動報名', group_buy: '團購' };
+const FORM_TYPE_LABELS: Record<string, string> = {
+  event:      '活動報名',
+  group_buy:  '團購',
+  volunteer:  '志工招募',
+  venue:      '場地借用',
+  survey:     '問卷調查',
+};
 
 export default function FormDetail() {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +45,7 @@ export default function FormDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // 基本欄位
+  // 聯絡欄位
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -106,15 +115,17 @@ export default function FormDetail() {
   const lockedMessage = isClosed
     ? '此表單已由管理員關閉'
     : isExpired
-    ? '報名截止日期已過'
-    : '報名人數已達上限，感謝您的關注';
+    ? '填寫截止日期已過'
+    : '已達人數上限，感謝您的關注';
+
+  const typeLabel = FORM_TYPE_LABELS[form.type] ?? form.type;
 
   return (
     <main className="flex-1">
       <div className="max-w-2xl mx-auto px-4 py-10">
         <div className="mb-6">
           <span className="text-xs text-yellow-600 font-medium bg-yellow-50 px-2 py-1 rounded-full">
-            {TYPE_LABELS[form.type]}
+            {typeLabel}
           </span>
           <h1 className="text-2xl font-bold text-gray-800 mt-3 mb-2">{form.title}</h1>
           {form.description && <p className="text-gray-500 text-sm">{form.description}</p>}
@@ -133,44 +144,49 @@ export default function FormDetail() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5 bg-white rounded-2xl shadow-sm p-6">
-            {/* 基本欄位 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">姓名 <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                placeholder="請輸入姓名"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                placeholder="請輸入 Email"
-              />
-            </div>
+            {/* 聯絡資料（requireContact = true 時才顯示） */}
+            {form.requireContact && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">姓名 <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    placeholder="請輸入姓名"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">手機號碼 <span className="text-red-500">*</span></label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                placeholder="請輸入手機號碼"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    placeholder="請輸入 Email"
+                  />
+                </div>
 
-            {/* 數量（團購或 maxQuantity > 1 時顯示） */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">手機號碼 <span className="text-red-500">*</span></label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    placeholder="請輸入手機號碼"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* 數量（有設定單價且 maxQuantity > 1 時顯示） */}
             {form.price && form.maxQuantity && form.maxQuantity > 1 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">數量</label>
@@ -191,6 +207,9 @@ export default function FormDetail() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {field.label} {field.required && <span className="text-red-500">*</span>}
                 </label>
+                {field.helpText && (
+                  <p className="text-xs text-gray-400 mb-1">{field.helpText}</p>
+                )}
 
                 {field.type === 'text' && (
                   <input
@@ -198,6 +217,18 @@ export default function FormDetail() {
                     required={field.required}
                     value={(answers[field.key] as string) ?? ''}
                     onChange={(e) => setAnswer(field.key, e.target.value)}
+                    placeholder={field.placeholder}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                )}
+
+                {field.type === 'textarea' && (
+                  <textarea
+                    required={field.required}
+                    value={(answers[field.key] as string) ?? ''}
+                    onChange={(e) => setAnswer(field.key, e.target.value)}
+                    placeholder={field.placeholder}
+                    rows={4}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   />
                 )}
@@ -205,6 +236,17 @@ export default function FormDetail() {
                 {field.type === 'number' && (
                   <input
                     type="number"
+                    required={field.required}
+                    value={(answers[field.key] as string) ?? ''}
+                    onChange={(e) => setAnswer(field.key, e.target.value)}
+                    placeholder={field.placeholder}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  />
+                )}
+
+                {field.type === 'date' && (
+                  <input
+                    type="date"
                     required={field.required}
                     value={(answers[field.key] as string) ?? ''}
                     onChange={(e) => setAnswer(field.key, e.target.value)}

@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 
 const navLinks = [
   { to: '/about', label: '關於我們' },
-  { to: '/services', label: '聚會時間' },
+  { to: '/services', label: '聚會資訊' },
   { to: '/news', label: '最新消息' },
   { to: '/media', label: '影音資源' },
   { to: '/pastor-works', label: '牧師著作' },

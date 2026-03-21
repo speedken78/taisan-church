@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Form from '../models/Form';
+import Form, { FORM_TYPES, FormType } from '../models/Form';
 import FormSubmission from '../models/FormSubmission';
 import { sendSubmissionConfirm } from '../services/email';
 
@@ -12,7 +12,13 @@ export const getOpenForms = async (req: Request, res: Response): Promise<void> =
     isOpen: true,
     deadline: { $gte: new Date() },
   };
-  if (type === 'event' || type === 'group_buy') filter.type = type;
+  if (type) {
+    if (!(FORM_TYPES as readonly string[]).includes(type)) {
+      res.status(400).json({ message: `不支援的表單類型：${type}` });
+      return;
+    }
+    filter.type = type as FormType;
+  }
 
   const forms = await Form.find(filter)
     .sort({ deadline: 1 })
@@ -57,8 +63,8 @@ export const submitForm = async (req: Request, res: Response): Promise<void> => 
 
   const { name, email, phone, answers, quantity = 1 } = req.body;
 
-  // 必填欄位基本驗證
-  if (!name || !email || !phone) {
+  // 聯絡資料驗證（只有 requireContact 為 true 時才強制）
+  if (form.requireContact && (!name || !email || !phone)) {
     res.status(400).json({ message: '請填寫姓名、Email 及手機號碼' });
     return;
   }
@@ -71,17 +77,20 @@ export const submitForm = async (req: Request, res: Response): Promise<void> => 
     }
   }
 
-  // 防重複報名：同一表單，email 或 phone 已存在
-  const duplicate = await FormSubmission.findOne({
-    formId: form._id,
-    $or: [
-      { email: email.toLowerCase().trim() },
-      { phone: phone.trim() },
-    ],
-  });
-  if (duplicate) {
-    res.status(409).json({ message: '此 Email 或手機號碼已完成報名，請勿重複送出' });
-    return;
+  // 防重複報名（只有啟用聯絡資料收集時才做）
+  if (form.requireContact && (email || phone)) {
+    const orConditions = [];
+    if (email) orConditions.push({ email: email.toLowerCase().trim() });
+    if (phone) orConditions.push({ phone: phone.trim() });
+
+    const duplicate = await FormSubmission.findOne({
+      formId: form._id,
+      $or: orConditions,
+    });
+    if (duplicate) {
+      res.status(409).json({ message: '此 Email 或手機號碼已完成報名，請勿重複送出' });
+      return;
+    }
   }
 
   // 額滿檢查
@@ -99,32 +108,34 @@ export const submitForm = async (req: Request, res: Response): Promise<void> => 
 
   const submission = await FormSubmission.create({
     formId: form._id,
-    name: name.trim(),
-    email: email.toLowerCase().trim(),
-    phone: phone.trim(),
+    name: name?.trim(),
+    email: email?.toLowerCase().trim(),
+    phone: phone?.trim(),
     answers: answers ?? {},
     quantity: qty,
     totalAmount,
   });
 
-  // 寄確認信（非同步，失敗不影響報名結果）
-  const fieldLabels: Record<string, string> = {};
-  form.fields.forEach((f) => { fieldLabels[f.key] = f.label; });
+  // 寄確認信（非同步，失敗不影響報名結果；無 email 時略過）
+  if (form.requireContact && submission.email) {
+    const fieldLabels: Record<string, string> = {};
+    form.fields.forEach((f) => { fieldLabels[f.key] = f.label; });
 
-  sendSubmissionConfirm({
-    to: submission.email,
-    name: submission.name,
-    formTitle: form.title,
-    formType: form.type,
-    quantity: qty,
-    totalAmount,
-    answers: Object.fromEntries(submission.answers),
-    fieldLabels,
-  }).catch((err) => {
-    console.error('Email 寄送失敗:', err.message);
-  });
+    sendSubmissionConfirm({
+      to: submission.email,
+      name: submission.name ?? '',
+      formTitle: form.title,
+      formType: form.type,
+      quantity: qty,
+      totalAmount,
+      answers: Object.fromEntries(submission.answers),
+      fieldLabels,
+    }).catch((err) => {
+      console.error('Email 寄送失敗:', err.message);
+    });
+  }
 
-  res.status(201).json({ message: '報名成功', submissionId: submission._id });
+  res.status(201).json({ message: '送出成功', submissionId: submission._id });
 };
 
 // ── CMS ──────────────────────────────────────────────
@@ -229,23 +240,30 @@ export const exportSubmissionsCsv = async (req: Request, res: Response): Promise
   const fieldKeys = form.fields.map((f) => f.key);
   const fieldLabels = form.fields.map((f) => f.label);
 
-  const header = ['姓名', 'Email', '手機', '數量', '金額', ...fieldLabels, '報名時間'].join(',');
+  // 聯絡資料欄位只在 requireContact = true 時輸出
+  const contactHeaders = form.requireContact ? ['姓名', 'Email', '手機'] : [];
+  const header = [...contactHeaders, '數量', '金額', ...fieldLabels, '報名時間'].join(',');
+
   const rows = submissions.map((s) => {
-    const base = [
-      `"${s.name}"`,
-      `"${s.email}"`,
-      `"${s.phone}"`,
-      s.quantity,
-      s.totalAmount,
-    ];
+    const contactCols = form.requireContact
+      ? [
+          `"${s.name  ?? '（未填）'}"`,
+          `"${s.email ?? '（未填）'}"`,
+          `"${s.phone ?? '（未填）'}"`,
+        ]
+      : [];
     const answerCols = fieldKeys.map((k) => {
       const val = s.answers.get(k) ?? '';
       const str = Array.isArray(val) ? val.join('、') : String(val);
       return `"${str.replace(/"/g, '""')}"`;
     });
-    base.push(...answerCols);
-    base.push(`"${new Date(s.createdAt).toLocaleString('zh-TW')}"`);
-    return base.join(',');
+    return [
+      ...contactCols,
+      s.quantity,
+      s.totalAmount,
+      ...answerCols,
+      `"${new Date(s.createdAt).toLocaleString('zh-TW')}"`,
+    ].join(',');
   });
 
   const csv = [header, ...rows].join('\n');

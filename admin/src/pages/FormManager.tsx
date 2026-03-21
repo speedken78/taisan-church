@@ -4,25 +4,37 @@ import { formApi } from '../api';
 interface FormField {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'select' | 'radio' | 'checkbox';
+  type: 'text' | 'textarea' | 'number' | 'date' | 'select' | 'radio' | 'checkbox';
   options: string[];
+  placeholder: string;
+  helpText: string;
   required: boolean;
 }
 
 interface FormItem {
   _id: string;
   title: string;
-  type: 'event' | 'group_buy';
+  type: string;
   isOpen: boolean;
   deadline: string;
   totalLimit?: number;
 }
 
-const FIELD_TYPE_LABELS = {
-  text: '文字',
-  number: '數字',
-  select: '下拉選單',
-  radio: '單選',
+const FORM_TYPE_OPTIONS = [
+  { value: 'event',      label: '活動報名' },
+  { value: 'group_buy',  label: '團購' },
+  { value: 'volunteer',  label: '志工招募' },
+  { value: 'venue',      label: '場地借用' },
+  { value: 'survey',     label: '問卷調查' },
+];
+
+const FIELD_TYPE_LABELS: Record<FormField['type'], string> = {
+  text:     '單行文字',
+  textarea: '多行文字',
+  number:   '數字',
+  date:     '日期',
+  select:   '下拉選單',
+  radio:    '單選',
   checkbox: '多選',
 };
 
@@ -31,13 +43,16 @@ const emptyField = (): FormField => ({
   label: '',
   type: 'text',
   options: [],
+  placeholder: '',
+  helpText: '',
   required: false,
 });
 
 const emptyForm = () => ({
   title: '',
   description: '',
-  type: 'event' as 'event' | 'group_buy',
+  type: 'event' as string,
+  requireContact: true,
   price: '',
   maxQuantity: '1',
   totalLimit: '0',
@@ -79,12 +94,18 @@ export default function FormManager() {
         title: d.title,
         description: d.description ?? '',
         type: d.type,
+        requireContact: d.requireContact ?? true,
         price: d.price != null ? String(d.price) : '',
         maxQuantity: String(d.maxQuantity ?? 1),
         totalLimit: String(d.totalLimit ?? 0),
         deadline: d.deadline ? d.deadline.slice(0, 10) : '',
         isOpen: d.isOpen,
-        fields: (d.fields ?? []).map((f: FormField) => ({ ...f, options: f.options ?? [] })),
+        fields: (d.fields ?? []).map((f: FormField) => ({
+          ...f,
+          options: f.options ?? [],
+          placeholder: f.placeholder ?? '',
+          helpText: f.helpText ?? '',
+        })),
       });
       setEditingId(item._id);
       setError('');
@@ -94,13 +115,14 @@ export default function FormManager() {
 
   const handleSave = async () => {
     setError('');
-    if (!form.title.trim()) { setError('請填寫活動名稱'); return; }
+    if (!form.title.trim()) { setError('請填寫表單名稱'); return; }
     if (!form.deadline) { setError('請填寫截止日期'); return; }
 
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
       type: form.type,
+      requireContact: form.requireContact,
       price: form.price !== '' ? Number(form.price) : undefined,
       maxQuantity: Number(form.maxQuantity) || 1,
       totalLimit: Number(form.totalLimit) || 0,
@@ -111,6 +133,8 @@ export default function FormManager() {
         label: f.label,
         type: f.type,
         options: f.options,
+        placeholder: f.placeholder || undefined,
+        helpText: f.helpText || undefined,
         required: f.required,
       })),
     };
@@ -169,15 +193,18 @@ export default function FormManager() {
     updateField(index, { options: raw.split('\n').map((s) => s.trim()).filter(Boolean) });
   };
 
+  const formTypeLabel = (type: string) =>
+    FORM_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">活動 / 團購管理</h1>
+        <h1 className="text-2xl font-bold text-gray-800">表單管理</h1>
         <button
           onClick={openCreate}
           className="bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
         >
-          + 新增
+          + 新增表單
         </button>
       </div>
 
@@ -199,9 +226,7 @@ export default function FormManager() {
               {forms.map((item) => (
                 <tr key={item._id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-800 font-medium">{item.title}</td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {item.type === 'event' ? '活動報名' : '團購'}
-                  </td>
+                  <td className="px-4 py-3 text-gray-500">{formTypeLabel(item.type)}</td>
                   <td className="px-4 py-3 text-gray-500">
                     {new Date(item.deadline).toLocaleDateString('zh-TW')}
                   </td>
@@ -256,7 +281,7 @@ export default function FormManager() {
               {/* 基本設定 */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-500 mb-1">活動名稱 *</label>
+                  <label className="block text-xs text-gray-500 mb-1">表單名稱 *</label>
                   <input
                     type="text"
                     value={form.title}
@@ -266,7 +291,7 @@ export default function FormManager() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-500 mb-1">活動說明</label>
+                  <label className="block text-xs text-gray-500 mb-1">說明文字</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -279,11 +304,12 @@ export default function FormManager() {
                   <label className="block text-xs text-gray-500 mb-1">類型</label>
                   <select
                     value={form.type}
-                    onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as 'event' | 'group_buy' }))}
+                    onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   >
-                    <option value="event">活動報名</option>
-                    <option value="group_buy">團購</option>
+                    {FORM_TYPE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -331,15 +357,26 @@ export default function FormManager() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isOpen"
-                    checked={form.isOpen}
-                    onChange={(e) => setForm((p) => ({ ...p, isOpen: e.target.checked }))}
-                    className="accent-yellow-400"
-                  />
-                  <label htmlFor="isOpen" className="text-sm text-gray-700">開放報名</label>
+                <div className="col-span-2 flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="isOpen"
+                      checked={form.isOpen}
+                      onChange={(e) => setForm((p) => ({ ...p, isOpen: e.target.checked }))}
+                      className="accent-yellow-400"
+                    />
+                    <span className="text-sm text-gray-700">開放填寫</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.requireContact}
+                      onChange={(e) => setForm((p) => ({ ...p, requireContact: e.target.checked }))}
+                      className="accent-yellow-400"
+                    />
+                    <span className="text-sm text-gray-700">收集姓名 / Email / 手機</span>
+                  </label>
                 </div>
               </div>
 
@@ -371,7 +408,7 @@ export default function FormManager() {
                             value={field.label}
                             onChange={(e) => updateField(idx, { label: e.target.value })}
                             className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                            placeholder="例：T-shirt 尺寸"
+                            placeholder="例：志工服務意願"
                           />
                         </div>
                         <div>
@@ -388,6 +425,7 @@ export default function FormManager() {
                         </div>
                       </div>
 
+                      {/* 選項（select / radio / checkbox） */}
                       {['select', 'radio', 'checkbox'].includes(field.type) && (
                         <div className="mb-2">
                           <label className="block text-xs text-gray-400 mb-0.5">選項（每行一個）</label>
@@ -396,10 +434,36 @@ export default function FormManager() {
                             onChange={(e) => updateOptions(idx, e.target.value)}
                             rows={3}
                             className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                            placeholder={"S\nM\nL\nXL"}
+                            placeholder={"選項 A\n選項 B\n選項 C"}
                           />
                         </div>
                       )}
+
+                      {/* 佔位提示（text / textarea / number / date） */}
+                      {['text', 'textarea', 'number', 'date'].includes(field.type) && (
+                        <div className="mb-2">
+                          <label className="block text-xs text-gray-400 mb-0.5">佔位提示（選填）</label>
+                          <input
+                            type="text"
+                            value={field.placeholder}
+                            onChange={(e) => updateField(idx, { placeholder: e.target.value })}
+                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                            placeholder="例：請簡短描述您的服務經驗"
+                          />
+                        </div>
+                      )}
+
+                      {/* 說明文字（所有類型都可加） */}
+                      <div className="mb-2">
+                        <label className="block text-xs text-gray-400 mb-0.5">說明文字（選填）</label>
+                        <input
+                          type="text"
+                          value={field.helpText}
+                          onChange={(e) => updateField(idx, { helpText: e.target.value })}
+                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                          placeholder="例：請選擇您可服務的時段"
+                        />
+                      </div>
 
                       <div className="flex items-center justify-between">
                         <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">

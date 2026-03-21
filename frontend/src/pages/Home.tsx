@@ -72,7 +72,7 @@ export default function Home() {
       {/* 快速導覽 */}
       <section className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-6">
         {[
-          { to: '/services', icon: '🕊️', label: '聚會時間' },
+          { to: '/services', icon: '🕊️', label: '聚會資訊' },
           { to: '/media', icon: '📺', label: '主日直播' },
           { to: '/groups', icon: '👥', label: '小組牧區' },
           { to: '/offering', icon: '💛', label: '線上奉獻' },
