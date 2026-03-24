@@ -12,6 +12,8 @@ import pastorWorkRoutes from './routes/pastorWorks';
 import groupRoutes from './routes/groups';
 import offeringRoutes from './routes/offering';
 import formRoutes from './routes/forms';
+import resourceCategoryRoutes from './routes/resourceCategories';
+import resourceRoutes from './routes/resources';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -37,6 +39,8 @@ app.use('/api/pastor-works', pastorWorkRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/offering', offeringRoutes);
 app.use('/api/forms', formRoutes);
+app.use('/api/resource-categories', resourceCategoryRoutes);
+app.use('/api/resources', resourceRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

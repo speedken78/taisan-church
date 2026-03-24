@@ -73,6 +73,21 @@ export const formApi = {
   getSubmissions: (id: string, page = 1) => api.get(`/forms/${id}/submissions?page=${page}`),
 };
 
+export const resourceCategoryApi = {
+  getAll: () => api.get('/resource-categories'),
+  create: (data: { name: string; order: number }) => api.post('/resource-categories', data),
+  update: (id: string, data: { name?: string; order?: number }) => api.put(`/resource-categories/${id}`, data),
+  remove: (id: string) => api.delete(`/resource-categories/${id}`),
+};
+
+export const resourceApi = {
+  getAll: () => api.get('/resources/admin/all'),
+  create: (data: FormData) =>
+    api.post('/resources', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id: string, data: object) => api.put(`/resources/${id}`, data),
+  remove: (id: string) => api.delete(`/resources/${id}`),
+};
+
 export const offeringApi = {
   getRecords: (page = 1) => api.get(`/offering/admin/records?page=${page}`),
 };

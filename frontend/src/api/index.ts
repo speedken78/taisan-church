@@ -39,6 +39,16 @@ export const formApi = {
   }) => api.post(`/forms/${id}/submit`, data),
 };
 
+export const resourceCategoryApi = {
+  getAll: () => api.get('/resource-categories'),
+};
+
+export const resourceApi = {
+  getAll: (categoryId?: string) =>
+    api.get('/resources', { params: categoryId ? { category: categoryId } : {} }),
+  download: (id: string) => `/api/resources/${id}/download`,
+};
+
 export const offeringApi = {
   create: (data: {
     amount: number;

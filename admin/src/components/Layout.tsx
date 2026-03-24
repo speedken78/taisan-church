@@ -11,6 +11,8 @@ const navItems = [
   { to: '/offering', label: '💛 奉獻記錄' },
   { to: '/forms', label: '📋 活動/團購' },
   { to: '/forms/report', label: '📊 報名統計' },
+  { to: '/resources', label: '📂 資源中心' },
+  { to: '/resource-categories', label: '🗂️ 資源分類' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

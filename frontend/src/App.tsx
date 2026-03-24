@@ -15,6 +15,7 @@ import Contact from './pages/Contact';
 import Forms from './pages/Forms';
 import FormDetail from './pages/FormDetail';
 import FormResult from './pages/FormResult';
+import Resources from './pages/Resources';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/forms" element={<Forms />} />
           <Route path="/forms/result" element={<FormResult />} />
           <Route path="/forms/:id" element={<FormDetail />} />
+          <Route path="/resources" element={<Resources />} />
         </Routes>
         <Footer />
       </div>
