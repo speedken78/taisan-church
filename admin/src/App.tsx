@@ -14,6 +14,7 @@ import FormManager from './pages/FormManager';
 import FormReport from './pages/FormReport';
 import ResourceManager from './pages/ResourceManager';
 import ResourceCategoryManager from './pages/ResourceCategoryManager';
+import AccountManager from './pages/AccountManager';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
                     <Route path="/forms/report" element={<FormReport />} />
                     <Route path="/resources" element={<ResourceManager />} />
                     <Route path="/resource-categories" element={<ResourceCategoryManager />} />
+                    <Route path="/account" element={<AccountManager />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

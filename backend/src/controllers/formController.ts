@@ -188,19 +188,31 @@ export const getFormSubmissions = async (req: Request, res: Response): Promise<v
   const limit = 30;
   const skip = (page - 1) * limit;
 
+  const filter: Record<string, unknown> = { formId: form._id };
+  const allowedStatuses = ['pending', 'confirmed', 'rejected'];
+  if (req.query.status && allowedStatuses.includes(req.query.status as string)) {
+    filter.status = req.query.status;
+  }
+
   const [submissions, total] = await Promise.all([
-    FormSubmission.find({ formId: form._id })
+    FormSubmission.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .select('-__v'),
-    FormSubmission.countDocuments({ formId: form._id }),
+    FormSubmission.countDocuments(filter),
   ]);
 
-  // 統計
+  // 統計（永遠以全部報名資料計算，不受 status 篩選影響）
   const allSubmissions = await FormSubmission.find({ formId: form._id });
+  const confirmedSubmissions = allSubmissions.filter((s) => s.status === 'confirmed');
+  const pendingCount = allSubmissions.filter((s) => s.status === 'pending').length;
+  const confirmedCount = confirmedSubmissions.length;
+  const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
   const totalQuantity = allSubmissions.reduce((sum, s) => sum + s.quantity, 0);
   const totalAmount = allSubmissions.reduce((sum, s) => sum + s.totalAmount, 0);
+  const confirmedQuantity = confirmedSubmissions.reduce((sum, s) => sum + s.quantity, 0);
+  const confirmedAmount = confirmedSubmissions.reduce((sum, s) => sum + s.totalAmount, 0);
 
   // 各選項分佈（select / radio / checkbox 類型欄位）
   const optionStats: Record<string, Record<string, number>> = {};
@@ -223,7 +235,16 @@ export const getFormSubmissions = async (req: Request, res: Response): Promise<v
     submissions,
     total,
     totalPages: Math.ceil(total / limit),
-    stats: { totalQuantity, totalAmount, optionStats },
+    stats: {
+      totalQuantity,
+      totalAmount,
+      confirmedQuantity,
+      confirmedAmount,
+      pendingCount,
+      confirmedCount,
+      rejectedCount,
+      optionStats,
+    },
   });
 };
 
@@ -240,9 +261,15 @@ export const exportSubmissionsCsv = async (req: Request, res: Response): Promise
   const fieldKeys = form.fields.map((f) => f.key);
   const fieldLabels = form.fields.map((f) => f.label);
 
+  const STATUS_LABEL: Record<string, string> = {
+    pending: '待審核',
+    confirmed: '已確認',
+    rejected: '已拒絕',
+  };
+
   // 聯絡資料欄位只在 requireContact = true 時輸出
   const contactHeaders = form.requireContact ? ['姓名', 'Email', '手機'] : [];
-  const header = [...contactHeaders, '數量', '金額', ...fieldLabels, '報名時間'].join(',');
+  const header = [...contactHeaders, '數量', '金額', ...fieldLabels, '狀態', '報名時間'].join(',');
 
   const rows = submissions.map((s) => {
     const contactCols = form.requireContact
@@ -262,6 +289,7 @@ export const exportSubmissionsCsv = async (req: Request, res: Response): Promise
       s.quantity,
       s.totalAmount,
       ...answerCols,
+      `"${STATUS_LABEL[s.status] ?? s.status}"`,
       `"${new Date(s.createdAt).toLocaleString('zh-TW')}"`,
     ].join(',');
   });
@@ -272,4 +300,29 @@ export const exportSubmissionsCsv = async (req: Request, res: Response): Promise
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
   res.send('\uFEFF' + csv); // BOM for Excel
+};
+
+// 管理員審核報名狀態（需 JWT）
+export const updateSubmissionStatus = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const allowed = ['pending', 'confirmed', 'rejected'];
+  if (!allowed.includes(status)) {
+    res.status(400).json({ message: '無效的狀態值' });
+    return;
+  }
+
+  const submission = await FormSubmission.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!submission) {
+    res.status(404).json({ message: '找不到此報名紀錄' });
+    return;
+  }
+
+  res.json(submission);
 };

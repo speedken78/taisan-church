@@ -27,6 +27,10 @@ api.interceptors.response.use(
 export const authApi = {
   login: (username: string, password: string) =>
     api.post('/auth/login', { username, password }),
+  register: (username: string, password: string) =>
+    api.post('/auth/register', { username, password }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', { currentPassword, newPassword }),
 };
 
 export const newsApi = {
@@ -70,7 +74,10 @@ export const formApi = {
   create: (data: object) => api.post('/forms', data),
   update: (id: string, data: object) => api.put(`/forms/${id}`, data),
   remove: (id: string) => api.delete(`/forms/${id}`),
-  getSubmissions: (id: string, page = 1) => api.get(`/forms/${id}/submissions?page=${page}`),
+  getSubmissions: (id: string, page = 1, status?: string) =>
+    api.get(`/forms/${id}/submissions?page=${page}${status ? `&status=${status}` : ''}`),
+  updateSubmissionStatus: (submissionId: string, status: 'pending' | 'confirmed' | 'rejected') =>
+    api.patch(`/forms/submissions/${submissionId}/status`, { status }),
 };
 
 export const resourceCategoryApi = {

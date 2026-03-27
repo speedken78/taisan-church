@@ -10,6 +10,7 @@ import {
   deleteForm,
   getFormSubmissions,
   exportSubmissionsCsv,
+  updateSubmissionStatus,
 } from '../controllers/formController';
 import { protect } from '../middleware/auth';
 
@@ -36,5 +37,6 @@ router.put('/:id', protect, updateForm);
 router.delete('/:id', protect, deleteForm);
 router.get('/:id/submissions', protect, getFormSubmissions);
 router.get('/:id/submissions/export', protect, exportSubmissionsCsv);
+router.patch('/submissions/:id/status', protect, updateSubmissionStatus);
 
 export default router;

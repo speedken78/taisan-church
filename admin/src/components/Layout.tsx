@@ -13,6 +13,7 @@ const navItems = [
   { to: '/forms/report', label: '📊 報名統計' },
   { to: '/resources', label: '📂 資源中心' },
   { to: '/resource-categories', label: '🗂️ 資源分類' },
+  { to: '/account', label: '🔐 帳號管理' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

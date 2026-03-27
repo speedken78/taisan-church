@@ -8,6 +8,7 @@ export interface IFormSubmission extends Document {
   answers: Map<string, string | number | string[]>;
   quantity: number;
   totalAmount: number;
+  status: 'pending' | 'confirmed' | 'rejected';
   createdAt: Date;
 }
 
@@ -20,6 +21,12 @@ const FormSubmissionSchema = new Schema<IFormSubmission>(
     answers: { type: Map, of: Schema.Types.Mixed, default: {} },
     quantity: { type: Number, default: 1, min: 1 },
     totalAmount: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'rejected'],
+      default: 'pending',
+      required: true,
+    },
   },
   { timestamps: true }
 );

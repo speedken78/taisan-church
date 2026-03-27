@@ -8,14 +8,16 @@ export default function FormResult() {
   return (
     <main className="flex-1 flex items-center justify-center py-20">
       <div className="text-center max-w-md px-4">
-        <div className="text-6xl mb-6">✅</div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-3">{type}成功！</h1>
+        <div className="text-6xl mb-6">📋</div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-3">{type}已送出！</h1>
         <p className="text-gray-500 mb-2">
           感謝您{type === '團購' ? '參與團購' : '報名'}：<strong>{title}</strong>
         </p>
+        <p className="text-gray-400 text-sm mb-2">
+          管理員確認後您的{type}即生效，
+        </p>
         <p className="text-gray-400 text-sm mb-8">
-          確認通知已寄至您的 Email，若未收到請確認垃圾信件夾，
-          或聯絡我們：02-2900-8100
+          如有疑問請聯繫教會：02-2900-8100
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
