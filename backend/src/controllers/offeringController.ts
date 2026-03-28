@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import OfferingRecord from '../models/OfferingRecord';
+import OfferingRecord, { OfferingStatus } from '../models/OfferingRecord';
 import { buildTradeInfo, buildTradeSha, verifyNotify, aesDecrypt } from '../services/newebpay';
 
 const MERCHANT_ID = process.env.NEWEBPAY_MERCHANT_ID as string;
@@ -94,6 +94,31 @@ export const returnOffering = async (req: Request, res: Response): Promise<void>
   } else {
     res.redirect(`${frontendUrl}/offering/result?status=failed`);
   }
+};
+
+// CMS：手動修正奉獻狀態
+export const updateOfferingStatus = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const allowed: OfferingStatus[] = ['pending', 'success', 'failed'];
+  if (!allowed.includes(status)) {
+    res.status(400).json({ message: '無效的狀態值' });
+    return;
+  }
+
+  const record = await OfferingRecord.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true }
+  );
+
+  if (!record) {
+    res.status(404).json({ message: '找不到此奉獻記錄' });
+    return;
+  }
+
+  res.json(record);
 };
 
 // CMS：查詢奉獻記錄

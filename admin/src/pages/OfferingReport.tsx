@@ -25,6 +25,7 @@ export default function OfferingReport() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const load = (p: number) => {
     setLoading(true);
@@ -39,6 +40,21 @@ export default function OfferingReport() {
   };
 
   useEffect(() => { load(page); }, [page]);
+
+  const handleUpdateStatus = async (id: string, status: OfferingRecord['status']) => {
+    if (!confirm(`確定要將此筆狀態改為「${STATUS_LABELS[status]}」？`)) return;
+    setUpdatingId(id);
+    try {
+      await offeringApi.updateStatus(id, status);
+      setRecords((prev) =>
+        prev.map((r) => (r._id === id ? { ...r, status } : r))
+      );
+    } catch {
+      alert('狀態更新失敗，請稍後再試');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const successAmount = records
     .filter((r) => r.status === 'success')
@@ -63,10 +79,13 @@ export default function OfferingReport() {
                   <th className="px-4 py-3 text-right">金額</th>
                   <th className="px-4 py-3 text-left">狀態</th>
                   <th className="px-4 py-3 text-left">時間</th>
+                  <th className="px-4 py-3 text-left">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {records.map((r) => (
+                {records.map((r) => {
+                  const isUpdating = updatingId === r._id;
+                  return (
                   <tr key={r._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-400 text-xs font-mono">{r.merchantOrderNo}</td>
                     <td className="px-4 py-3 text-gray-800">{r.donorName}</td>
@@ -80,8 +99,41 @@ export default function OfferingReport() {
                     <td className="px-4 py-3 text-gray-400 text-xs">
                       {new Date(r.createdAt).toLocaleDateString('zh-TW')}
                     </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1.5">
+                        {r.status !== 'success' && (
+                          <button
+                            onClick={() => handleUpdateStatus(r._id, 'success')}
+                            disabled={isUpdating}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition disabled:opacity-40"
+                          >
+                            標示成功
+                          </button>
+                        )}
+                        {r.status !== 'failed' && (
+                          <button
+                            onClick={() => handleUpdateStatus(r._id, 'failed')}
+                            disabled={isUpdating}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition disabled:opacity-40"
+                          >
+                            標示失敗
+                          </button>
+                        )}
+                        {r.status !== 'pending' && (
+                          <button
+                            onClick={() => handleUpdateStatus(r._id, 'pending')}
+                            disabled={isUpdating}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition disabled:opacity-40"
+                          >
+                            重設
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
+
               </tbody>
             </table>
             {records.length === 0 && <p className="text-center text-gray-400 py-8">尚無奉獻記錄</p>}

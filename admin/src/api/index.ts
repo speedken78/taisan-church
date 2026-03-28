@@ -97,6 +97,8 @@ export const resourceApi = {
 
 export const offeringApi = {
   getRecords: (page = 1) => api.get(`/offering/admin/records?page=${page}`),
+  updateStatus: (id: string, status: 'pending' | 'success' | 'failed') =>
+    api.patch(`/offering/admin/records/${id}/status`, { status }),
 };
 
 export default api;
