@@ -5,6 +5,7 @@ import { buildTradeInfo, buildTradeSha, verifyNotify, aesDecrypt } from '../serv
 
 const MERCHANT_ID = process.env.NEWEBPAY_MERCHANT_ID as string;
 const API_URL = process.env.NEWEBPAY_API_URL as string;
+const BACKEND_URL = process.env.BACKEND_URL as string;
 
 // 前台：建立奉獻訂單，回傳藍新所需的表單參數
 export const createOffering = async (req: Request, res: Response): Promise<void> => {
@@ -30,8 +31,8 @@ export const createOffering = async (req: Request, res: Response): Promise<void>
     status: 'pending',
   });
 
-  const returnUrl = `${req.protocol}://${req.get('host')}/api/offering/return`;
-  const notifyUrl = `${req.protocol}://${req.get('host')}/api/offering/notify`;
+  const returnUrl = `${BACKEND_URL}/api/offering/return`;
+  const notifyUrl = `${BACKEND_URL}/api/offering/notify`;
 
   const tradeParams: Record<string, string> = {
     MerchantID: MERCHANT_ID,
