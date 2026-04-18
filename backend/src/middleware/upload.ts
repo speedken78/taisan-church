@@ -58,13 +58,16 @@ const ALLOWED_DOCUMENT_MIMES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
 ];
 
 const documentFileFilter = (_req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (ALLOWED_DOCUMENT_MIMES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('只允許上傳 PDF、Word、Excel、PowerPoint 檔案'));
+    cb(new Error('只允許上傳 PDF、Word、Excel、PowerPoint、圖片檔案'));
   }
 };
 

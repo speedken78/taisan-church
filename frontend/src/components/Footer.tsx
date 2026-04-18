@@ -5,7 +5,12 @@ export default function Footer() {
     <footer className="bg-gray-800 text-gray-300 mt-auto">
       <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <img src="/assets/logo.jpg" alt="泰山幸福教會" className="h-10 w-auto object-contain mb-3 brightness-0 invert" />
+          <img
+            src="/assets/logo.jpg"
+            alt="泰山幸福教會"
+            className="h-12 w-auto object-contain mb-3 rounded-md"
+            style={{ background: 'white', padding: '6px 10px' }}
+          />
           <p className="text-sm leading-relaxed">
             地址：新北市泰山區泰林路2段199號7樓<br />
             電話：02-2900-8100<br />

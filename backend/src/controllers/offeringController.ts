@@ -27,7 +27,7 @@ export const createOffering = async (req: Request, res: Response): Promise<void>
     donorName,
     donorEmail,
     donorPhone,
-    purpose: purpose || '一般奉獻',
+    purpose: purpose || '感恩奉獻',
     status: 'pending',
   });
 
@@ -41,7 +41,7 @@ export const createOffering = async (req: Request, res: Response): Promise<void>
     Version: '2.0',
     MerchantOrderNo: merchantOrderNo,
     Amt: String(amount),
-    ItemDesc: `泰山幸福教會 - ${purpose || '一般奉獻'}`,
+    ItemDesc: `泰山幸福教會 - ${purpose || '感恩奉獻'}`,
     Email: donorEmail,
     ReturnURL: returnUrl,
     NotifyURL: notifyUrl,

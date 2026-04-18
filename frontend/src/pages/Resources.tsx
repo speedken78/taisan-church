@@ -27,6 +27,10 @@ const FILE_ICONS: Record<string, string> = {
   xlsx: '📊',
   ppt:  '📋',
   pptx: '📋',
+  jpg:  '🖼️',
+  jpeg: '🖼️',
+  png:  '🖼️',
+  webp: '🖼️',
 };
 
 function formatSize(bytes: number): string {

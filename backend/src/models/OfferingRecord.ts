@@ -24,7 +24,7 @@ const OfferingRecordSchema = new Schema<IOfferingRecord>(
     donorName: { type: String, required: true },
     donorEmail: { type: String, required: true },
     donorPhone: { type: String },
-    purpose: { type: String, default: '一般奉獻' },
+    purpose: { type: String, default: '感恩奉獻' },
     status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
     newebpayResponse: { type: Schema.Types.Mixed },
   },

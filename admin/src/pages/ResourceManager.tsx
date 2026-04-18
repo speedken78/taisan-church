@@ -158,12 +158,12 @@ export default function ResourceManager() {
               {!editId && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    檔案（PDF / Word / Excel / PowerPoint，最大 30MB）
+                    檔案（PDF / Word / Excel / PowerPoint / 圖片，最大 30MB）
                   </label>
                   <input
                     type="file"
                     ref={fileRef}
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp"
                     required
                     className="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-sm file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
                   />

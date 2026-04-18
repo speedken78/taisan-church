@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { offeringApi } from '../api';
 
-const PURPOSES = ['一般奉獻', '十一奉獻', '建堂奉獻', '宣教奉獻', '其他'];
+const PURPOSES = ['感恩奉獻', '十一奉獻', '宣教奉獻', '其他'];
 
 export default function Offering() {
   const [form, setForm] = useState({
@@ -9,7 +9,7 @@ export default function Offering() {
     donorName: '',
     donorEmail: '',
     donorPhone: '',
-    purpose: '一般奉獻',
+    purpose: '感恩奉獻',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
