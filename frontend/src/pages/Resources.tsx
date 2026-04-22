@@ -45,13 +45,17 @@ function formatSize(bytes: number): string {
 
 export default function Resources() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [activeCat, setActiveCat] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<Resource | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     resourceCategoryApi.getAll().then((r) => setCategories(r.data)).catch(() => {});
+    // 載入全部資源供跨分類搜尋使用
+    resourceApi.getAll().then((r) => setAllResources(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -72,13 +76,40 @@ export default function Resources() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  // 有搜尋字時跨分類搜尋，否則依分類篩選
+  const filteredResources = searchQuery.trim()
+    ? allResources.filter((r) =>
+        r.title.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      )
+    : resources;
+
   return (
     <main className="flex-1">
       <div className="max-w-6xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">資源中心</h1>
-        <p className="text-gray-500 mb-8">點擊下載按鈕即可取得相關檔案資源</p>
+        <p className="text-gray-500 mb-6">點擊下載按鈕即可取得相關檔案資源</p>
 
-        {/* 分類 tabs */}
+        {/* 搜尋框 */}
+        <div className="relative w-full md:w-64 mb-6">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setSearchQuery('')}
+            placeholder="搜尋資源..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* 分類 tabs（有搜尋時仍顯示，但不影響結果） */}
         <div className="flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => setActiveCat('all')}
@@ -108,11 +139,15 @@ export default function Resources() {
         {/* 資源列表 */}
         {loading ? (
           <p className="text-center text-gray-400 py-16">載入中…</p>
-        ) : resources.length === 0 ? (
+        ) : filteredResources.length === 0 && searchQuery ? (
+          <div className="text-center text-gray-400 py-12">
+            找不到符合「{searchQuery}」的資源
+          </div>
+        ) : filteredResources.length === 0 ? (
           <p className="text-center text-gray-400 py-16">目前無資源</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {resources.map((item) => (
+            {filteredResources.map((item) => (
               <div
                 key={item._id}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition"
