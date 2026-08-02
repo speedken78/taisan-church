@@ -55,6 +55,7 @@ export const offeringApi = {
     donorName: string;
     donorEmail: string;
     donorPhone?: string;
+    donorNationalId?: string;
     purpose?: string;
   }) => api.post('/offering/create', data),
 };

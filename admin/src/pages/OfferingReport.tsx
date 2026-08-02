@@ -6,6 +6,7 @@ interface OfferingRecord {
   merchantOrderNo: string;
   donorName: string;
   donorEmail: string;
+  donorNationalId?: string;
   amount: number;
   purpose: string;
   status: 'pending' | 'success' | 'failed';
@@ -75,6 +76,7 @@ export default function OfferingReport() {
                 <tr>
                   <th className="px-4 py-3 text-left">訂單編號</th>
                   <th className="px-4 py-3 text-left">姓名</th>
+                  <th className="px-4 py-3 text-left">身分證字號</th>
                   <th className="px-4 py-3 text-left">用途</th>
                   <th className="px-4 py-3 text-right">金額</th>
                   <th className="px-4 py-3 text-left">狀態</th>
@@ -89,6 +91,7 @@ export default function OfferingReport() {
                   <tr key={r._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-400 text-xs font-mono">{r.merchantOrderNo}</td>
                     <td className="px-4 py-3 text-gray-800">{r.donorName}</td>
+                    <td className="px-4 py-3 text-gray-500 font-mono">{r.donorNationalId || '—'}</td>
                     <td className="px-4 py-3 text-gray-500">{r.purpose}</td>
                     <td className="px-4 py-3 text-right font-medium text-gray-800">NT$ {r.amount.toLocaleString()}</td>
                     <td className="px-4 py-3">

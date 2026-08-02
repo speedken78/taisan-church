@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { offeringApi } from '../api';
 
 const PURPOSES = ['感恩奉獻', '十一奉獻', '宣教奉獻', '其他'];
+const NATIONAL_ID_PATTERN = /^[A-Z][1-2]\d{8}$/;
 
 export default function Offering() {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ export default function Offering() {
     donorName: '',
     donorEmail: '',
     donorPhone: '',
+    donorNationalId: '',
     purpose: '感恩奉獻',
   });
   const [loading, setLoading] = useState(false);
@@ -27,6 +29,11 @@ export default function Offering() {
       return;
     }
 
+    if (form.donorNationalId && !NATIONAL_ID_PATTERN.test(form.donorNationalId)) {
+      setError('身分證字號格式不正確');
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await offeringApi.create({
@@ -34,6 +41,7 @@ export default function Offering() {
         donorName: form.donorName,
         donorEmail: form.donorEmail,
         donorPhone: form.donorPhone,
+        donorNationalId: form.donorNationalId,
         purpose: form.purpose,
       });
 
@@ -126,6 +134,19 @@ export default function Offering() {
               value={form.donorPhone}
               onChange={handleChange}
               placeholder="09XX-XXX-XXX"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">身分證字號（選填）</label>
+            <input
+              type="text"
+              name="donorNationalId"
+              value={form.donorNationalId}
+              onChange={handleChange}
+              placeholder="年度奉獻收據申報用，例：A123456789"
+              maxLength={10}
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
             />
           </div>

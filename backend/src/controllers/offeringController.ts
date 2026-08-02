@@ -6,13 +6,19 @@ import { buildTradeInfo, buildTradeSha, verifyNotify, aesDecrypt } from '../serv
 const MERCHANT_ID = process.env.NEWEBPAY_MERCHANT_ID as string;
 const API_URL = process.env.NEWEBPAY_API_URL as string;
 const BACKEND_URL = process.env.BACKEND_URL as string;
+const NATIONAL_ID_PATTERN = /^[A-Z][1-2]\d{8}$/;
 
 // 前台：建立奉獻訂單，回傳藍新所需的表單參數
 export const createOffering = async (req: Request, res: Response): Promise<void> => {
-  const { amount, donorName, donorEmail, donorPhone, purpose } = req.body;
+  const { amount, donorName, donorEmail, donorPhone, donorNationalId, purpose } = req.body;
 
   if (!amount || !donorName || !donorEmail) {
     res.status(400).json({ message: '請填寫必要欄位' });
+    return;
+  }
+
+  if (donorNationalId && !NATIONAL_ID_PATTERN.test(donorNationalId)) {
+    res.status(400).json({ message: '身分證字號格式不正確' });
     return;
   }
 
@@ -27,6 +33,7 @@ export const createOffering = async (req: Request, res: Response): Promise<void>
     donorName,
     donorEmail,
     donorPhone,
+    donorNationalId: donorNationalId || undefined,
     purpose: purpose || '感恩奉獻',
     status: 'pending',
   });

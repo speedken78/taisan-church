@@ -9,6 +9,7 @@ export interface IOfferingRecord extends Document {
   donorName: string;
   donorEmail: string;
   donorPhone?: string;
+  donorNationalId?: string; // 身分證字號（選填，年度奉獻收據申報國稅局用）
   purpose?: string;        // 奉獻用途 (一般奉獻、十一奉獻等)
   status: OfferingStatus;
   newebpayResponse?: Record<string, unknown>;
@@ -24,6 +25,7 @@ const OfferingRecordSchema = new Schema<IOfferingRecord>(
     donorName: { type: String, required: true },
     donorEmail: { type: String, required: true },
     donorPhone: { type: String },
+    donorNationalId: { type: String },
     purpose: { type: String, default: '感恩奉獻' },
     status: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
     newebpayResponse: { type: Schema.Types.Mixed },
