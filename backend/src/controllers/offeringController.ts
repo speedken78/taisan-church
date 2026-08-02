@@ -60,6 +60,16 @@ export const createOffering = async (req: Request, res: Response): Promise<void>
   });
 };
 
+interface NewebpayTradeResult {
+  Status: string;
+  Message: string;
+  Result: {
+    MerchantOrderNo: string;
+    TradeNo: string;
+    [key: string]: unknown;
+  };
+}
+
 // 藍新非同步通知（POST）
 export const notifyOffering = async (req: Request, res: Response): Promise<void> => {
   const { Status, TradeInfo, TradeSha } = req.body;
@@ -69,18 +79,23 @@ export const notifyOffering = async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  const decrypted = aesDecrypt(TradeInfo);
-  const params = Object.fromEntries(new URLSearchParams(decrypted));
+  try {
+    const decrypted = aesDecrypt(TradeInfo);
+    const { Result } = JSON.parse(decrypted) as NewebpayTradeResult;
 
-  const record = await OfferingRecord.findOne({ merchantOrderNo: params.MerchantOrderNo });
-  if (record) {
-    record.status = Status === 'SUCCESS' ? 'success' : 'failed';
-    record.tradeNo = params.TradeNo || '';
-    record.newebpayResponse = params as Record<string, unknown>;
-    await record.save();
+    const record = await OfferingRecord.findOne({ merchantOrderNo: Result.MerchantOrderNo });
+    if (record) {
+      record.status = Status === 'SUCCESS' ? 'success' : 'failed';
+      record.tradeNo = Result.TradeNo || '';
+      record.newebpayResponse = Result;
+      await record.save();
+    }
+
+    res.send('OK');
+  } catch (err) {
+    console.error('[offering/notify] decrypt/save failed:', err);
+    res.status(500).send('處理失敗');
   }
-
-  res.send('OK');
 };
 
 // 藍新同步回傳（POST → 導向結果頁）
@@ -89,9 +104,14 @@ export const returnOffering = async (req: Request, res: Response): Promise<void>
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
   if (Status === 'SUCCESS' && TradeInfo) {
-    const decrypted = aesDecrypt(TradeInfo);
-    const params = Object.fromEntries(new URLSearchParams(decrypted));
-    res.redirect(`${frontendUrl}/offering/result?status=success&orderNo=${params.MerchantOrderNo}`);
+    try {
+      const decrypted = aesDecrypt(TradeInfo);
+      const { Result } = JSON.parse(decrypted) as NewebpayTradeResult;
+      res.redirect(`${frontendUrl}/offering/result?status=success&orderNo=${Result.MerchantOrderNo}`);
+    } catch (err) {
+      console.error('[offering/return] decrypt failed:', err);
+      res.redirect(`${frontendUrl}/offering/result?status=failed`);
+    }
   } else {
     res.redirect(`${frontendUrl}/offering/result?status=failed`);
   }
